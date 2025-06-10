@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,9 +10,25 @@ import { useToast } from '@/hooks/use-toast';
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const { login, isLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Load saved credentials on component mount
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('moodTracker_savedEmail');
+    const savedPassword = localStorage.getItem('moodTracker_savedPassword');
+    const wasRemembered = localStorage.getItem('moodTracker_rememberMe') === 'true';
+    
+    if (wasRemembered && savedEmail) {
+      setEmail(savedEmail);
+      setRememberMe(true);
+    }
+    if (wasRemembered && savedPassword) {
+      setPassword(savedPassword);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,6 +40,17 @@ const Login = () => {
         variant: "destructive"
       });
       return;
+    }
+
+    // Save credentials if remember me is checked
+    if (rememberMe) {
+      localStorage.setItem('moodTracker_savedEmail', email);
+      localStorage.setItem('moodTracker_savedPassword', password);
+      localStorage.setItem('moodTracker_rememberMe', 'true');
+    } else {
+      localStorage.removeItem('moodTracker_savedEmail');
+      localStorage.removeItem('moodTracker_savedPassword');
+      localStorage.removeItem('moodTracker_rememberMe');
     }
 
     const success = await login(email, password);
@@ -53,6 +80,7 @@ const Login = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full"
+                autoComplete="email"
               />
             </div>
             <div>
@@ -62,7 +90,20 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full"
+                autoComplete="current-password"
               />
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="rememberMe"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="rounded border-gray-300"
+              />
+              <label htmlFor="rememberMe" className="text-sm text-gray-600 dark:text-gray-400">
+                Remember my credentials
+              </label>
             </div>
             <Button 
               type="submit" 
