@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
@@ -22,6 +23,15 @@ export const Navigation = () => {
     navigate('/login');
   };
 
+  const renderIcon = (item: typeof navItems[0]) => {
+    if (item.isString) {
+      return <span className="text-lg mb-1">{item.icon as string}</span>;
+    } else {
+      const IconComponent = item.icon as React.ComponentType<{ className?: string }>;
+      return <IconComponent className="h-5 w-5 mb-1" />;
+    }
+  };
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-4 py-2 z-50">
       <div className="flex justify-between items-center max-w-md mx-auto">
@@ -37,11 +47,7 @@ export const Navigation = () => {
               }`}
               onClick={() => navigate(item.path)}
             >
-              {item.isString ? (
-                <span className="text-lg mb-1">{item.icon}</span>
-              ) : (
-                React.createElement(item.icon as any, { className: "h-5 w-5 mb-1" })
-              )}
+              {renderIcon(item)}
               <span className="text-xs">{item.label}</span>
             </Button>
           );
